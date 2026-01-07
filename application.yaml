@@ -10,7 +10,9 @@ spec:
   sources:
     - repoURL: https://github.com/jesusmonda/testing.git
       targetRevision: main
-      path: /
+      path: .
+      directory:
+        exclude: 'application.yaml'
   syncPolicy:
     automated:
       prune: true
