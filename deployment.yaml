@@ -50,7 +50,7 @@ spec:
         #   In-fact, they both start at the same time.
         # Liveness probe will vary from application to application. 
         #   Some start fast, some start slow.
-        startupProbe:
+        readinessProbe:
           httpGet:
             path: /livenesscheck.txt
             port: 80
