@@ -1,22 +1,61 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: testing-1
-  namespace: default
+  name: liveness-simple
+  labels:
+    app: liveness-simple
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      app: testing-1
+      app: liveness-simple
   template:
     metadata:
       labels:
-        app: testing-1
+        app: liveness-simple
     spec:
       containers:
-        - name: testing-1
-          image: nginx
-          ports:
-            - containerPort: 80
+      - name: liveness-simple
+        image: kamranazeem/k8s-probes-demo:latest
+
+        env:
+        - name: START_DELAY
+
+          value: "30"
+
+        ports:
+        - name: http 
+          containerPort: 80
+
+        resources:
+          limits:
+            cpu: 10m
+            memory: 20Mi
+          requests:
+            cpu: 5m
+            memory: 20Mi
+       
+        # Liveliness probes are used while the container is up, 
+        #   to see if the service is "still" alive.
+        # If the service does not respond, then kubernetes kills the container/pod,
+        #   and restarts it.
+        # It is therefore important to have initialDelaySeconds for the "livenessProbe"
+        #   to be as late as possible.
+        # If it is a small number, and if for some reason container is not started yet,
+        #   (in case of slow application startup), then kubernetes will restart it.
+        # This means the pod will stuck in a crash loop, and will never start.
+        # Remember, livenessProbe does NOT start AFTER readiness probe.
+        #   In-fact, they both start at the same time.
+        # Liveness probe will vary from application to application. 
+        #   Some start fast, some start slow.
+        livenessProbe:
+          httpGet:
+            path: /livenesscheck.txt
+            port: 80
+          initialDelaySeconds: 30
+          # Retry the probe every X seconds (frequency):
+          periodSeconds: 3
+          # Number of times this probe can fail,
+          #   before kubernetes gives up and "restarts" the "container":
+          failureThreshold: 1
